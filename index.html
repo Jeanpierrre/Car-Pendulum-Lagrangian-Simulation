@@ -3,446 +3,739 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Simulación Carrito–Péndulo | Lagrangiano</title>
+  <title>Carrito–Péndulo | Simulación Lagrangiana</title>
+
   <style>
     :root {
-      --bg: #edf3fb;
-      --card: rgba(255,255,255,.96);
-      --ink: #0f172a;
-      --text: #334155;
-      --muted: #64748b;
-      --line: #d9e2ee;
-      --blue: #2563eb;
-      --blue-dark: #1d4ed8;
-      --green: #16a34a;
-      --amber: #d97706;
-      --red: #dc2626;
-      --cart: #475569;
-      --cart-dark: #1f2937;
-      --bob: #f59e0b;
+      --bg: #0b1020;
+      --panel: #111827;
+      --panel2: #172033;
+      --line: #243044;
+      --line2: #334155;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --blue: #3b82f6;
+      --green: #22c55e;
+      --amber: #f59e0b;
+      --red: #ef4444;
+      --soft: #f8fafc;
     }
 
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      height: 100%;
+    }
 
     body {
-      margin: 0;
-      min-height: 100vh;
-      color: var(--text);
-      background:
-        radial-gradient(circle at 10% 0%, rgba(37, 99, 235, .16), transparent 32%),
-        radial-gradient(circle at 100% 10%, rgba(245, 158, 11, .12), transparent 30%),
-        linear-gradient(135deg, #fbfdff 0%, var(--bg) 100%);
       font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      background:
+        radial-gradient(circle at 15% 0%, rgba(59, 130, 246, 0.18), transparent 30%),
+        radial-gradient(circle at 85% 10%, rgba(239, 68, 68, 0.12), transparent 28%),
+        linear-gradient(135deg, #020617 0%, var(--bg) 100%);
+      color: var(--text);
+      overflow: hidden;
     }
 
     header {
-      padding: 24px 32px;
-      background: linear-gradient(135deg, #0f172a 0%, #172554 58%, #1e293b 100%);
-      color: white;
-      box-shadow: 0 14px 32px rgba(15, 23, 42, .20);
+      height: 68px;
+      padding: 14px 24px;
+      background: rgba(15, 23, 42, 0.92);
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
     }
 
     header h1 {
-      margin: 0;
-      font-size: 30px;
-      letter-spacing: -.045em;
-      line-height: 1.08;
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
     }
 
-    header p {
-      margin: 9px 0 0;
-      color: #cbd5e1;
-      font-size: 14px;
-      max-width: 1120px;
+    header h1 span {
+      color: var(--blue);
     }
 
-    main {
-      display: grid;
-      grid-template-columns: 405px minmax(760px, 1fr);
-      gap: 18px;
-      padding: 18px;
-    }
-
-    .card {
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 24px;
-      box-shadow: 0 20px 48px rgba(15, 23, 42, .10);
-      backdrop-filter: blur(10px);
-    }
-
-    .panel {
-      padding: 16px;
-      max-height: calc(100vh - 128px);
-      overflow: auto;
-    }
-
-    .stage {
-      padding: 16px;
-      min-height: 780px;
+    .chips {
       display: flex;
-      flex-direction: column;
+      gap: 8px;
+      flex-wrap: wrap;
     }
 
-    .row-title {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 12px;
-    }
-
-    h2 {
-      margin: 0;
-      color: var(--ink);
-      font-size: 17px;
-      letter-spacing: -.025em;
-    }
-
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 10px;
+    .chip {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 11px;
+      color: var(--muted);
+      border: 1px solid var(--line2);
       border-radius: 999px;
-      background: #dbeafe;
-      color: #1d4ed8;
-      font-size: 12px;
-      font-weight: 850;
+      padding: 4px 10px;
+      background: rgba(15, 23, 42, 0.8);
       white-space: nowrap;
     }
 
-    .equations {
-      background: #f8fafc;
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      padding: 12px;
-      margin-bottom: 14px;
+    .formula-bar {
+      min-height: 96px;
+      padding: 12px 24px;
+      background: rgba(15, 23, 42, 0.9);
+      border-bottom: 1px solid var(--line);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
     }
 
-    .equations strong {
-      display: block;
-      margin: 10px 0 6px;
-      color: var(--ink);
-      font-size: 13px;
+    .formula-title {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 10px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      margin-bottom: 6px;
     }
 
     .formula {
-      background: white;
-      border-left: 4px solid var(--blue);
-      border-radius: 11px;
-      padding: 9px 10px;
-      margin: 7px 0;
-      color: #0f172a;
       font-family: "Times New Roman", Georgia, serif;
       font-size: 15px;
-      line-height: 1.32;
-      overflow-x: auto;
-      box-shadow: 0 1px 0 rgba(15, 23, 42, .05);
+      line-height: 1.45;
+      color: #dbeafe;
     }
 
-    .case-grid {
+    .formula small {
+      color: var(--muted);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 11px;
+    }
+
+    .app {
+      height: calc(100vh - 164px);
       display: grid;
-      gap: 8px;
-      margin-bottom: 12px;
+      grid-template-columns: 330px 1fr;
+      overflow: hidden;
     }
 
-    button {
-      border: 0;
-      border-radius: 15px;
-      padding: 12px;
-      color: white;
-      background: var(--blue);
-      font-weight: 850;
-      cursor: pointer;
-      box-shadow: 0 8px 18px rgba(37, 99, 235, .18);
-      transition: .15s ease;
+    aside {
+      background: rgba(15, 23, 42, 0.94);
+      border-right: 1px solid var(--line);
+      overflow-y: auto;
+      padding: 16px;
     }
 
-    button:hover { background: var(--blue-dark); transform: translateY(-1px); }
-    button.secondary { background: #334155; box-shadow: 0 8px 18px rgba(51, 65, 85, .16); }
-    button.secondary:hover { background: #1e293b; }
-
-    .control { margin: 13px 0; }
-
-    .control label {
-      display: flex;
-      justify-content: space-between;
-      color: #334155;
-      font-weight: 780;
-      font-size: 13px;
-      margin-bottom: 7px;
+    .section {
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 16px;
+      margin-bottom: 16px;
     }
 
-    input[type="range"] { width: 100%; accent-color: var(--blue); }
-
-    .status {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 8px;
-      margin-top: 12px;
+    .section:last-child {
+      border-bottom: none;
     }
 
-    .metric {
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 15px;
-      padding: 10px;
-      font-size: 13px;
-    }
-
-    .metric strong {
-      display: block;
+    .section-label {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 10px;
       color: var(--muted);
       text-transform: uppercase;
-      letter-spacing: .045em;
-      font-size: 11px;
-      margin-bottom: 3px;
+      letter-spacing: 0.14em;
+      margin-bottom: 10px;
     }
 
-    .note {
-      margin-top: 12px;
-      padding: 12px;
-      border-radius: 17px;
-      background: #eef2ff;
-      border: 1px solid #c7d2fe;
-      color: #334155;
-      font-size: 13px;
-      line-height: 1.45;
-    }
-
-    .stage-top {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 12px;
-    }
-
-    .stage-top h2 { margin: 0; color: var(--ink); font-size: 18px; }
-    .stage-top p { margin: 6px 0 0; color: var(--muted); font-size: 13px; }
-
-    .live-chip {
-      padding: 8px 12px;
-      border-radius: 999px;
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      color: #334155;
-      font-size: 13px;
-      font-weight: 850;
-      white-space: nowrap;
-    }
-
-    canvas {
+    .case-btn {
       width: 100%;
-      height: 680px;
+      border: 1px solid var(--line2);
+      background: var(--panel2);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 11px 12px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      text-align: left;
+      transition: 0.15s ease;
+    }
+
+    .case-btn:hover {
+      transform: translateY(-1px);
+      border-color: var(--blue);
+    }
+
+    .case-btn strong {
       display: block;
-      border-radius: 20px;
-      border: 1px solid var(--line);
-      background: linear-gradient(180deg, #ffffff, #f8fafc);
+      font-size: 14px;
+      margin-bottom: 2px;
     }
 
-    .legend {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      margin-top: 12px;
-    }
-
-    .legend div {
-      padding: 10px 12px;
-      border-radius: 15px;
-      border: 1px solid #e2e8f0;
-      background: #f8fafc;
+    .case-btn span {
+      display: block;
       font-size: 12px;
+      color: var(--muted);
       line-height: 1.35;
     }
 
-    .legend strong { color: var(--ink); }
+    .case-btn.active-1 {
+      border-color: var(--green);
+      box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.28) inset;
+    }
 
-    @media (max-width: 1180px) {
-      main { grid-template-columns: 1fr; }
-      .panel { max-height: none; }
-      .stage { min-height: auto; }
-      canvas { height: 560px; }
+    .case-btn.active-2 {
+      border-color: var(--amber);
+      box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.28) inset;
+    }
+
+    .case-btn.active-3 {
+      border-color: var(--red);
+      box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.32) inset;
+    }
+
+    .tag {
+      display: inline-block;
+      margin-top: 6px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    }
+
+    .tag.green {
+      color: var(--green);
+      background: rgba(34, 197, 94, 0.12);
+      border: 1px solid rgba(34, 197, 94, 0.35);
+    }
+
+    .tag.amber {
+      color: var(--amber);
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+    }
+
+    .tag.red {
+      color: var(--red);
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.38);
+    }
+
+    .control {
+      margin-bottom: 13px;
+    }
+
+    .control-top {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      font-size: 12px;
+    }
+
+    .control-top span:first-child {
+      color: var(--muted);
+    }
+
+    .control-top span:last-child {
+      color: var(--blue);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-weight: 700;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--blue);
+    }
+
+    .reset {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--line2);
+      border-radius: 10px;
+      background: var(--panel2);
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 700;
+      margin-top: 6px;
+    }
+
+    .reset:hover {
+      background: #1e293b;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .metric {
+      background: var(--panel2);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 9px 10px;
+    }
+
+    .metric .label {
+      font-size: 10px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      margin-bottom: 2px;
+    }
+
+    .metric .value {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--text);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    }
+
+    .metric.wide {
+      grid-column: span 2;
+    }
+
+    .note {
+      background: var(--panel2);
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--green);
+      border-radius: 0 12px 12px 0;
+      padding: 12px;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .note strong {
+      color: var(--text);
+    }
+
+    .coupling {
+      margin-top: 10px;
+    }
+
+    .coupling-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 5px;
+    }
+
+    .coupling-row span {
+      font-size: 11px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .track {
+      flex: 1;
+      height: 6px;
+      background: #1e293b;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .fill {
+      height: 100%;
+      width: 5%;
+      background: var(--green);
+      transition: 0.2s ease;
+    }
+
+    main {
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 40%, rgba(59, 130, 246, 0.12), transparent 35%),
+        #020617;
+    }
+
+    .canvas-label {
+      position: absolute;
+      left: 20px;
+      top: 16px;
+      z-index: 2;
+      font-size: 11px;
+      color: var(--muted);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .canvas-case {
+      position: absolute;
+      right: 20px;
+      top: 16px;
+      z-index: 2;
+      padding: 6px 12px;
+      border: 1px solid var(--line2);
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.86);
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    #scene {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    @media (max-width: 1000px) {
+      body {
+        overflow: auto;
+      }
+
+      .formula-bar {
+        grid-template-columns: 1fr;
+      }
+
+      .app {
+        height: auto;
+        grid-template-columns: 1fr;
+      }
+
+      main {
+        height: 620px;
+      }
     }
   </style>
 </head>
+
 <body>
   <header>
-    <h1>Simulación Lagrangiana: carrito–péndulo en plano inclinado</h1>
-    <p>
-      El movimiento se calcula con las ecuaciones en x y θ. Para dibujar el péndulo se aplica la relación angular solicitada:
-      θ = φ − α, por lo tanto φ = θ + α.
-    </p>
+    <h1>Carrito–Péndulo <span>/ Plano Inclinado</span></h1>
+    <div class="chips">
+      <div class="chip">Lagrange</div>
+      <div class="chip">RK4</div>
+      <div class="chip">x · θ</div>
+      <div class="chip">HTML único</div>
+    </div>
   </header>
 
-  <main>
-    <section class="card panel">
-      <div class="row-title">
-        <h2>Modelo matemático</h2>
-        <span class="badge">2 GDL: x, θ</span>
+  <section class="formula-bar">
+    <div>
+      <div class="formula-title">Ecuaciones de movimiento</div>
+      <div class="formula">
+        ẍ =
+        [m<sub>B</sub>g sinθ cosθ + m<sub>B</sub>ℓθ̇² sinθ − kx − (m<sub>C</sub>+m<sub>B</sub>)g sinα]
+        /
+        [m<sub>C</sub> + m<sub>B</sub>sin²θ]
       </div>
-
-      <div class="equations">
-        <strong>Lagrangiano</strong>
-        <div class="formula">L = T − V</div>
-        <div class="formula">T = ½(m<sub>C</sub> + m<sub>B</sub>)ẋ² + ½m<sub>B</sub>l²θ̇² + m<sub>B</sub>lẋθ̇cosθ</div>
-        <div class="formula">V = (m<sub>C</sub> + m<sub>B</sub>)gxsinα − m<sub>B</sub>glcosθ + ½kx²</div>
-
-        <strong>Ecuaciones de movimiento</strong>
-        <div class="formula">(m<sub>C</sub> + m<sub>B</sub>)ẍ + m<sub>B</sub>l(θ̈cosθ − θ̇²sinθ) + kx + (m<sub>C</sub> + m<sub>B</sub>)gsinα = 0</div>
-        <div class="formula">m<sub>B</sub>l²θ̈ + m<sub>B</sub>lẍcosθ + m<sub>B</sub>glsinθ = 0</div>
-
-        <strong>Forma integrada</strong>
-        <div class="formula">ẍ = [m<sub>B</sub>gsinθcosθ + m<sub>B</sub>lθ̇²sinθ − kx − (m<sub>C</sub> + m<sub>B</sub>)gsinα] / [m<sub>C</sub> + m<sub>B</sub>sin²θ]</div>
-        <div class="formula">θ̈ = −(ẍcosθ + gsinθ)/l</div>
-
-        <strong>Ángulo visual del péndulo</strong>
-        <div class="formula">θ = φ − α &nbsp;&nbsp;⇒&nbsp;&nbsp; φ = θ + α</div>
+      <div class="formula">
+        θ̈ = −(ẍ cosθ + g sinθ)/ℓ
       </div>
+    </div>
 
-      <div class="row-title">
-        <h2>Casos comparativos</h2>
-        <span class="badge" id="couplingBadge">Acoplamiento bajo</span>
+    <div>
+      <div class="formula-title">Nota de simulación</div>
+      <div class="formula">
+        <small>
+          Se integra la dinámica con RK4 usando exactamente ẍ y θ̈.
+          En el código: α = −|α| porque la pendiente del plano es negativa.
+          Para dibujar: φ = θ + |α|. El tope visual solo evita que el péndulo atraviese el palo.
+        </small>
       </div>
+    </div>
+  </section>
 
-      <div class="case-grid">
-        <button onclick="setCase(0.2, 'Caso 1: mB despreciable')">Caso 1 · mB = 0.2 kg</button>
-        <button onclick="setCase(2, 'Caso 2: mB comparable a mC')">Caso 2 · mB = 2 kg</button>
-        <button onclick="setCase(6, 'Caso 3: mB grande')">Caso 3 · mB = 6 kg</button>
-        <button class="secondary" onclick="resetSimulation()">Reiniciar simulación</button>
-      </div>
+  <div class="app">
+    <aside>
+      <div class="section">
+        <div class="section-label">Casos</div>
 
-      <div class="control">
-        <label><span>Pendiente α</span><span id="alphaText">-25°</span></label>
-        <input id="alphaSlider" type="range" min="-45" max="-5" value="-25" step="1" />
-      </div>
+        <button id="btn1" class="case-btn active-1" onclick="setCase(0.2, 'Caso 1: mB despreciable')">
+          <strong>Caso 1: péndulo ligero</strong>
+          <span>El carrito oscila casi como sistema carrito–resorte.</span>
+          <div class="tag green">mB = 0.2 kg</div>
+        </button>
 
-      <div class="control">
-        <label><span>Rigidez del resorte k</span><span id="kText">10</span></label>
-        <input id="kSlider" type="range" min="2" max="35" value="10" step="1" />
-      </div>
+        <button id="btn2" class="case-btn" onclick="setCase(2, 'Caso 2: mB comparable a mC')">
+          <strong>Caso 2: acoplamiento real</strong>
+          <span>El péndulo empieza a frenar y jalar al carrito.</span>
+          <div class="tag amber">mB = 2 kg</div>
+        </button>
 
-      <div class="control">
-        <label><span>Longitud del péndulo l</span><span id="lText">1.0 m</span></label>
-        <input id="lSlider" type="range" min="0.5" max="1.8" value="1.0" step="0.1" />
-      </div>
+        <button id="btn3" class="case-btn" onclick="setCase(6, 'Caso 3: mB grande')">
+          <strong>Caso 3: péndulo dominante</strong>
+          <span>Se observan jalones y cambios bruscos de ritmo.</span>
+          <div class="tag red">mB = 6 kg</div>
+        </button>
 
-      <div class="status">
-        <div class="metric"><strong>mC</strong><span id="mCText">2 kg</span></div>
-        <div class="metric"><strong>mB</strong><span id="mBText">0.2 kg</span></div>
-        <div class="metric"><strong>x real</strong><span id="xText">0.00 m</span></div>
-        <div class="metric"><strong>θ real</strong><span id="thetaText">0.00 rad</span></div>
-        <div class="metric"><strong>φ dibujo</strong><span id="phiText">0.00 rad</span></div>
-        <div class="metric"><strong>mB/mC</strong><span id="ratioText">0.10</span></div>
-      </div>
-
-      <div class="note" id="caseNote">
-        Caso 1: el péndulo es casi despreciable. El carrito se mueve casi como sistema carrito-resorte sobre plano inclinado.
-      </div>
-    </section>
-
-    <section class="card stage">
-      <div class="stage-top">
-        <div>
-          <h2>Animación principal</h2>
-          <p>
-            La cámara mantiene toda la figura visible. El carrito baja por el plano; al aumentar mB, el péndulo acopla el movimiento y puede frenarlo o alterarlo.
-          </p>
+        <div class="coupling">
+          <div class="coupling-row">
+            <span>mB/mC</span>
+            <div class="track"><div id="couplingFill" class="fill"></div></div>
+            <span id="ratioSmall">0.10×</span>
+          </div>
         </div>
-        <div class="live-chip" id="liveCase">Caso 1: mB despreciable</div>
       </div>
 
-      <canvas id="scene" width="1400" height="780"></canvas>
+      <div class="section">
+        <div class="section-label">Parámetros</div>
 
-      <div class="legend">
-        <div><strong>Caso 1:</strong> mB pequeño, el carrito domina.</div>
-        <div><strong>Caso 2:</strong> masa comparable, aparece acoplamiento.</div>
-        <div><strong>Caso 3:</strong> mB grande, el péndulo afecta fuertemente al carrito.</div>
+        <div class="control">
+          <div class="control-top">
+            <span>|α| visual del plano</span>
+            <span id="alphaText">25°</span>
+          </div>
+          <input id="alphaSlider" type="range" min="10" max="45" value="25" step="1">
+        </div>
+
+        <div class="control">
+          <div class="control-top">
+            <span>Rigidez del resorte k</span>
+            <span id="kText">10 N/m</span>
+          </div>
+          <input id="kSlider" type="range" min="2" max="35" value="10" step="1">
+        </div>
+
+        <div class="control">
+          <div class="control-top">
+            <span>Longitud del péndulo ℓ</span>
+            <span id="lText">1.0 m</span>
+          </div>
+          <input id="lSlider" type="range" min="0.6" max="1.8" value="1.0" step="0.1">
+        </div>
+
+        <button class="reset" onclick="resetSimulation()">Reiniciar simulación</button>
       </div>
-    </section>
-  </main>
+
+      <div class="section">
+        <div class="section-label">Lectura en tiempo real</div>
+
+        <div class="metrics">
+          <div class="metric">
+            <div class="label">mC</div>
+            <div class="value" id="mCText">2 kg</div>
+          </div>
+
+          <div class="metric">
+            <div class="label">mB</div>
+            <div class="value" id="mBText">0.2 kg</div>
+          </div>
+
+          <div class="metric">
+            <div class="label">x</div>
+            <div class="value" id="xText">0.00 m</div>
+          </div>
+
+          <div class="metric">
+            <div class="label">x equilibrio</div>
+            <div class="value" id="xeqText">0.00 m</div>
+          </div>
+
+          <div class="metric">
+            <div class="label">v plano</div>
+            <div class="value" id="vxText">0.00</div>
+          </div>
+
+          <div class="metric">
+            <div class="label">θ ecuación</div>
+            <div class="value" id="thetaText">0.00</div>
+          </div>
+
+          <div class="metric">
+            <div class="label">φ visible</div>
+            <div class="value" id="phiText">0°</div>
+          </div>
+
+          <div class="metric">
+            <div class="label">mB/mC</div>
+            <div class="value" id="ratioText">0.10</div>
+          </div>
+
+          <div class="metric wide">
+            <div class="label">Caso activo</div>
+            <div class="value" id="caseText">Caso 1</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Interpretación</div>
+        <div id="behaviorNote" class="note">
+          <strong>Caso 1:</strong> mB es casi despreciable. El carrito baja, el resorte lo devuelve y oscila casi sin que el péndulo lo afecte.
+        </div>
+      </div>
+    </aside>
+
+    <main>
+      <div class="canvas-label">Visualización dinámica</div>
+      <div class="canvas-case" id="caseChip">Caso 1: mB despreciable</div>
+      <canvas id="scene"></canvas>
+    </main>
+  </div>
 
   <script>
-    const canvas = document.getElementById('scene');
-    const ctx = canvas.getContext('2d');
+    const canvas = document.getElementById("scene");
+    const ctx = canvas.getContext("2d");
 
-    const alphaSlider = document.getElementById('alphaSlider');
-    const kSlider = document.getElementById('kSlider');
-    const lSlider = document.getElementById('lSlider');
+    const alphaSlider = document.getElementById("alphaSlider");
+    const kSlider = document.getElementById("kSlider");
+    const lSlider = document.getElementById("lSlider");
 
     const mC = 2;
     const g = 9.81;
+
     let mB = 0.2;
     let k = 10;
     let l = 1.0;
-    let alpha = -25 * Math.PI / 180;
-    let caseTitle = 'Caso 1: mB despreciable';
 
-    let state = { x: 0.05, vx: 0, theta: 0.80, omega: 0.0 };
+    let alphaVisual = degToRad(25);
+    let alphaFisica = -alphaVisual;
+
+    let caseTitle = "Caso 1: mB despreciable";
+
+    let state = { x: 0, vx: 0, theta: 0, omega: 0 };
     let prevState = { ...state };
-    let displayS = 0.24;
 
-    const simDt = 1 / 360;
     let accumulator = 0;
     let lastTs = null;
+    let visualProgress = 0.5;
+
+    const simDt = 1 / 520;
+
+    function degToRad(d) {
+      return d * Math.PI / 180;
+    }
+
+    function radToDeg(r) {
+      return r * 180 / Math.PI;
+    }
+
+    function clamp(v, a, b) {
+      return Math.max(a, Math.min(b, v));
+    }
+
+    function lerp(a, b, t) {
+      return a + (b - a) * t;
+    }
+
+    function equilibriumX() {
+      return -((mC + mB) * g * Math.sin(alphaFisica)) / k;
+    }
+
+    function resetSimulation() {
+      const ratio = mB / mC;
+      const xeq = equilibriumX();
+
+      const phi0 =
+        ratio < 0.25 ? degToRad(56) :
+        ratio <= 1.2 ? degToRad(74) :
+        degToRad(116);
+
+      state = {
+        x: xeq - 0.72,
+        vx: ratio < 0.25 ? 0.34 : ratio <= 1.2 ? 0.48 : 0.62,
+        theta: phi0 - alphaVisual,
+        omega: ratio < 0.25 ? 0.04 : ratio <= 1.2 ? -0.85 : -2.45
+      };
+
+      prevState = { ...state };
+      accumulator = 0;
+      visualProgress = 0.5 + (state.x - xeq) / 2.7;
+    }
 
     function derivatives(s) {
+      // ------------------------------------------------------------
+      // ---- FORMULAS DE MOVIMIENTO --------------------------------
+      // ------------------------------------------------------------
+      //
+      // xdd =
+      // [mB*g*sin(theta)*cos(theta)
+      //  + mB*l*thetaDot^2*sin(theta)
+      //  - k*x
+      //  - (mC + mB)*g*sin(alpha)]
+      // /
+      // [mC + mB*sin^2(theta)]
+      //
+      // thetadd =
+      // -(xdd*cos(theta) + g*sin(theta))/l
+      //
+      // alphaFisica < 0 porque el plano baja.
+      // phi = theta + |alpha| solo se usa para dibujar.
+
       const sinT = Math.sin(s.theta);
       const cosT = Math.cos(s.theta);
-      const sinA = Math.sin(alpha);
+      const sinA = Math.sin(alphaFisica);
 
-      const ax = (
+      const xdd = (
         mB * g * sinT * cosT +
         mB * l * s.omega * s.omega * sinT -
         k * s.x -
         (mC + mB) * g * sinA
       ) / (mC + mB * sinT * sinT);
 
-      const atheta = -(ax * cosT + g * sinT) / l;
-      return { x: s.vx, vx: ax, theta: s.omega, omega: atheta };
+      const thetadd = -(xdd * cosT + g * sinT) / l;
+
+      return {
+        x: s.vx,
+        vx: xdd,
+        theta: s.omega,
+        omega: thetadd
+      };
+
+      // ------------------------------------------------------------
+      // ---- FIN FORMULAS DE MOVIMIENTO ----------------------------
+      // ------------------------------------------------------------
     }
 
     function rk4Step(dt) {
       prevState = { ...state };
 
       const k1 = derivatives(state);
+
       const s2 = {
         x: state.x + 0.5 * dt * k1.x,
         vx: state.vx + 0.5 * dt * k1.vx,
         theta: state.theta + 0.5 * dt * k1.theta,
         omega: state.omega + 0.5 * dt * k1.omega
       };
+
       const k2 = derivatives(s2);
+
       const s3 = {
         x: state.x + 0.5 * dt * k2.x,
         vx: state.vx + 0.5 * dt * k2.vx,
         theta: state.theta + 0.5 * dt * k2.theta,
         omega: state.omega + 0.5 * dt * k2.omega
       };
+
       const k3 = derivatives(s3);
+
       const s4 = {
         x: state.x + dt * k3.x,
         vx: state.vx + dt * k3.vx,
         theta: state.theta + dt * k3.theta,
         omega: state.omega + dt * k3.omega
       };
+
       const k4 = derivatives(s4);
 
-      state.x += dt * (k1.x + 2*k2.x + 2*k3.x + k4.x) / 6;
-      state.vx += dt * (k1.vx + 2*k2.vx + 2*k3.vx + k4.vx) / 6;
-      state.theta += dt * (k1.theta + 2*k2.theta + 2*k3.theta + k4.theta) / 6;
-      state.omega += dt * (k1.omega + 2*k2.omega + 2*k3.omega + k4.omega) / 6;
+      state.x += dt * (k1.x + 2 * k2.x + 2 * k3.x + k4.x) / 6;
+      state.vx += dt * (k1.vx + 2 * k2.vx + 2 * k3.vx + k4.vx) / 6;
+      state.theta += dt * (k1.theta + 2 * k2.theta + 2 * k3.theta + k4.theta) / 6;
+      state.omega += dt * (k1.omega + 2 * k2.omega + 2 * k3.omega + k4.omega) / 6;
 
-      // Amortiguamiento suave solo para estabilidad de la demo visual.
-      state.vx *= 0.99965;
-      state.omega *= 0.99965;
+      const damping = mB >= 6 ? 0.99988 : mB >= 2 ? 0.99975 : 0.99965;
+      state.vx *= damping;
+      state.omega *= damping;
+
+      // Restricción geométrica visual: evita que el péndulo atraviese el palo.
+      const phi = state.theta + alphaVisual;
+      const phiMin = degToRad(8);
+      const phiMax = mB >= 6 ? degToRad(162) : degToRad(145);
+
+      if (phi < phiMin) {
+        state.theta = phiMin - alphaVisual;
+        if (state.omega < 0) state.omega *= -0.25;
+      }
+
+      if (phi > phiMax) {
+        state.theta = phiMax - alphaVisual;
+        if (state.omega > 0) state.omega *= -0.25;
+      }
     }
-
-    function lerp(a, b, t) { return a + (b - a) * t; }
-    function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
-    function smoothstep(t) { t = clamp(t, 0, 1); return t * t * (3 - 2 * t); }
 
     function getRenderState(r) {
       return {
@@ -453,76 +746,102 @@
       };
     }
 
-    function equilibriumX() {
-      return -((mC + mB) * g * Math.sin(alpha)) / k;
-    }
-
-    function resetSimulation() {
-      const x0 = Math.max(0.02, equilibriumX() * 0.08);
-      state = { x: x0, vx: 0, theta: 0.80, omega: 0.0 };
-      prevState = { ...state };
-      accumulator = 0;
-      displayS = 0.24;
-    }
-
     function setCase(newMass, title) {
       mB = newMass;
       caseTitle = title;
-      document.getElementById('liveCase').textContent = title;
+
+      document.getElementById("caseChip").textContent = title;
+      document.getElementById("caseText").textContent = title;
+
+      document.getElementById("btn1").className = "case-btn";
+      document.getElementById("btn2").className = "case-btn";
+      document.getElementById("btn3").className = "case-btn";
+
+      if (mB === 0.2) document.getElementById("btn1").className = "case-btn active-1";
+      if (mB === 2) document.getElementById("btn2").className = "case-btn active-2";
+      if (mB === 6) document.getElementById("btn3").className = "case-btn active-3";
+
+      updateCaseUI();
       resetSimulation();
-      updateCaseText();
-      updateReadout(state);
     }
 
-    function updateCaseText() {
+    function updateCaseUI() {
       const ratio = mB / mC;
-      const badge = document.getElementById('couplingBadge');
-      const note = document.getElementById('caseNote');
+      const fill = document.getElementById("couplingFill");
+      const ratioSmall = document.getElementById("ratioSmall");
+      const note = document.getElementById("behaviorNote");
+
+      ratioSmall.textContent = ratio.toFixed(2) + "×";
+      fill.style.width = Math.min(100, (ratio / 3) * 100) + "%";
 
       if (ratio < 0.25) {
-        badge.textContent = 'Acoplamiento bajo';
-        badge.style.background = '#dcfce7';
-        badge.style.color = '#166534';
-        note.textContent = 'Caso 1: mB es casi despreciable. El carrito baja casi como un sistema carrito-resorte; el péndulo se mueve, pero casi no lo frena.';
+        fill.style.background = "var(--green)";
+        note.style.borderLeftColor = "var(--green)";
+        note.innerHTML = "<strong>Caso 1:</strong> mB es casi despreciable. El carrito baja, el resorte lo devuelve y oscila casi sin que el péndulo lo afecte.";
       } else if (ratio <= 1.2) {
-        badge.textContent = 'Acoplamiento medio';
-        badge.style.background = '#fef3c7';
-        badge.style.color = '#92400e';
-        note.textContent = 'Caso 2: mB ya es comparable a mC. El péndulo empieza a jalar, frenar y desestabilizar el movimiento del carrito.';
+        fill.style.background = "var(--amber)";
+        note.style.borderLeftColor = "var(--amber)";
+        note.innerHTML = "<strong>Caso 2:</strong> mB es comparable a mC. El péndulo empieza a jalar y frenar al carrito; se nota el intercambio de energía.";
       } else {
-        badge.textContent = 'Acoplamiento alto';
-        badge.style.background = '#fee2e2';
-        badge.style.color = '#991b1b';
-        note.textContent = 'Caso 3: mB es grande. El péndulo domina más la dinámica y puede alterar fuertemente la velocidad del carrito.';
+        fill.style.background = "var(--red)";
+        note.style.borderLeftColor = "var(--red)";
+        note.innerHTML = "<strong>Caso 3:</strong> mB es mucho mayor que mC. El término mBℓθ̇²sinθ genera jalones visibles sobre el carrito.";
       }
     }
 
-    function updateParamsFromUI() {
-      alpha = Number(alphaSlider.value) * Math.PI / 180;
+    function updateParams() {
+      alphaVisual = degToRad(Number(alphaSlider.value));
+      alphaFisica = -alphaVisual;
+
       k = Number(kSlider.value);
       l = Number(lSlider.value);
 
-      document.getElementById('alphaText').textContent = `${alphaSlider.value}°`;
-      document.getElementById('kText').textContent = k.toFixed(0);
-      document.getElementById('lText').textContent = `${l.toFixed(1)} m`;
-      document.getElementById('mBText').textContent = `${mB.toFixed(1)} kg`;
-      document.getElementById('ratioText').textContent = (mB / mC).toFixed(2);
+      document.getElementById("alphaText").textContent = alphaSlider.value + "°";
+      document.getElementById("kText").textContent = k.toFixed(0) + " N/m";
+      document.getElementById("lText").textContent = l.toFixed(1) + " m";
+      document.getElementById("mBText").textContent = mB.toFixed(1) + " kg";
+      document.getElementById("ratioText").textContent = (mB / mC).toFixed(2);
+      updateCaseUI();
     }
 
     function updateReadout(s) {
-      const phi = s.theta + alpha;
-      document.getElementById('mCText').textContent = `${mC} kg`;
-      document.getElementById('xText').textContent = `${s.x.toFixed(2)} m`;
-      document.getElementById('thetaText').textContent = `${s.theta.toFixed(2)} rad`;
-      document.getElementById('phiText').textContent = `${phi.toFixed(2)} rad`;
+      const xeq = equilibriumX();
+      const phi = s.theta + alphaVisual;
+
+      document.getElementById("mCText").textContent = mC + " kg";
+      document.getElementById("xText").textContent = s.x.toFixed(2) + " m";
+      document.getElementById("xeqText").textContent = xeq.toFixed(2) + " m";
+      document.getElementById("vxText").textContent = s.vx.toFixed(2);
+      document.getElementById("thetaText").textContent = s.theta.toFixed(2);
+      document.getElementById("phiText").textContent = radToDeg(phi).toFixed(1) + "°";
     }
 
-    alphaSlider.addEventListener('input', () => { updateParamsFromUI(); resetSimulation(); });
-    kSlider.addEventListener('input', () => { updateParamsFromUI(); resetSimulation(); });
-    lSlider.addEventListener('input', () => { updateParamsFromUI(); resetSimulation(); });
+    alphaSlider.addEventListener("input", () => {
+      updateParams();
+      resetSimulation();
+    });
+
+    kSlider.addEventListener("input", () => {
+      updateParams();
+      resetSimulation();
+    });
+
+    lSlider.addEventListener("input", () => {
+      updateParams();
+      resetSimulation();
+    });
 
     const add = (p, q) => ({ x: p.x + q.x, y: p.y + q.y });
     const mul = (v, a) => ({ x: v.x * a, y: v.y * a });
+
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      return { W: rect.width, H: rect.height };
+    }
 
     function roundRect(x, y, w, h, r) {
       ctx.beginPath();
@@ -541,247 +860,386 @@
     function drawLine(p1, p2, width, color) {
       ctx.strokeStyle = color;
       ctx.lineWidth = width;
-      ctx.lineCap = 'round';
+      ctx.lineCap = "round";
       ctx.beginPath();
       ctx.moveTo(p1.x, p1.y);
       ctx.lineTo(p2.x, p2.y);
       ctx.stroke();
     }
 
+    function drawArrow(p1, p2, color, label) {
+      // Flecha compacta y limpia: solo visualiza el acoplamiento,
+      // no altera la dinámica del sistema.
+      ctx.save();
+
+      const a = Math.atan2(p2.y - p1.y, p2.x - p1.x);
+      const len = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+      const head = Math.min(7, Math.max(5, len * 0.18));
+
+      ctx.globalAlpha = 0.78;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1.9;
+      ctx.lineCap = "round";
+
+      ctx.beginPath();
+      ctx.moveTo(p1.x, p1.y);
+      ctx.lineTo(p2.x, p2.y);
+      ctx.stroke();
+
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.moveTo(p2.x, p2.y);
+      ctx.lineTo(p2.x - head * Math.cos(a - 0.45), p2.y - head * Math.sin(a - 0.45));
+      ctx.lineTo(p2.x - head * Math.cos(a + 0.45), p2.y - head * Math.sin(a + 0.45));
+      ctx.closePath();
+      ctx.fill();
+
+      if (label) {
+        ctx.globalAlpha = 0.66;
+        ctx.font = "700 9px system-ui";
+        ctx.fillStyle = color;
+        ctx.fillText(label, p2.x + 5, p2.y - 4);
+      }
+
+      ctx.restore();
+    }
+
     function drawSpring(p1, p2) {
       const dx = p2.x - p1.x;
       const dy = p2.y - p1.y;
       const L = Math.hypot(dx, dy);
-      const ux = dx / L;
-      const uy = dy / L;
-      const nx = -uy;
-      const ny = ux;
+      const nx = -dy / L;
+      const ny = dx / L;
 
-      drawLine(p1, p2, 3, '#94a3b8');
+      drawLine(p1, p2, 2, "rgba(148,163,184,0.28)");
 
-      ctx.strokeStyle = '#475569';
-      ctx.lineWidth = 2.3;
+      ctx.strokeStyle = "#60a5fa";
+      ctx.lineWidth = 2.5;
       ctx.beginPath();
-      const start = 0.20;
-      const end = 0.78;
-      const loops = 17;
+
+      const start = 0.18;
+      const end = 0.82;
+      const loops = 16;
+
       for (let i = 0; i <= loops; i++) {
         const r = start + (end - start) * i / loops;
-        const amp = (i % 2 === 0 ? 7 : -7);
+        const amp = i % 2 === 0 ? 8 : -8;
         const px = p1.x + dx * r + nx * amp;
         const py = p1.y + dy * r + ny * amp;
-        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
       }
+
       ctx.stroke();
     }
 
-    function drawArrow(p1, p2, label) {
-      drawLine(p1, p2, 3, '#2563eb');
-      const a = Math.atan2(p2.y - p1.y, p2.x - p1.x);
-      const s = 12;
-      ctx.fillStyle = '#2563eb';
+    function drawArc(center, radius, a1, a2, label) {
+      ctx.strokeStyle = "rgba(96,165,250,0.55)";
+      ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.moveTo(p2.x, p2.y);
-      ctx.lineTo(p2.x - s * Math.cos(a - .45), p2.y - s * Math.sin(a - .45));
-      ctx.lineTo(p2.x - s * Math.cos(a + .45), p2.y - s * Math.sin(a + .45));
-      ctx.closePath();
-      ctx.fill();
-      ctx.font = '700 15px Arial';
-      ctx.fillText(label, p1.x + 12, p1.y - 10);
+      ctx.arc(center.x, center.y, radius, a1, a2, false);
+      ctx.stroke();
+
+      const mid = (a1 + a2) / 2;
+      ctx.fillStyle = "#93c5fd";
+      ctx.font = "800 13px system-ui";
+      ctx.fillText(label, center.x + radius * Math.cos(mid) + 8, center.y + radius * Math.sin(mid) + 4);
     }
 
     function drawScene(s) {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const { W, H } = resizeCanvas();
 
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.clearRect(0, 0, W, H);
 
-      ctx.strokeStyle = '#e2e8f0';
-      ctx.lineWidth = 2;
-      roundRect(24, 24, canvas.width - 48, canvas.height - 48, 22);
-      ctx.stroke();
+      ctx.fillStyle = "#020617";
+      ctx.fillRect(0, 0, W, H);
 
-      // Plano inclinado completo, amplio y centrado.
-      const top = { x: 170, y: 230 };
-      const bottom = { x: 1210, y: 650 };
+      ctx.strokeStyle = "rgba(51,65,85,0.28)";
+      ctx.lineWidth = 1;
+
+      for (let x = 0; x < W; x += 52) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, H);
+        ctx.stroke();
+      }
+
+      for (let y = 0; y < H; y += 52) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(W, y);
+        ctx.stroke();
+      }
+
+      const top = { x: W * 0.12, y: H * 0.34 };
+      const bottom = { x: W * 0.88, y: H * 0.78 };
+
       const dx = bottom.x - top.x;
       const dy = bottom.y - top.y;
       const planeLen = Math.hypot(dx, dy);
-      const u = { x: dx / planeLen, y: dy / planeLen };   // dirección de bajada
-      const n = { x: u.y, y: -u.x };                      // normal hacia arriba
+
+      const u = { x: dx / planeLen, y: dy / planeLen };
+      const n = { x: u.y, y: -u.x };
       const planeAngle = Math.atan2(u.y, u.x);
 
-      // Dibujo del plano.
-      drawLine(top, bottom, 8, '#1f2937');
-      drawLine(add(bottom, mul(u, -75)), add(add(bottom, mul(u, -75)), mul(n, 135)), 8, '#1f2937');
-      drawArrow(add(top, mul(u, 75)), add(top, mul(u, 220)), 'arriba → abajo');
+      drawLine(top, bottom, 10, "#1e293b");
+      drawLine(top, bottom, 5, "#64748b");
 
-      // Mapeo visual suave. La física usa x real; la cámara solo mantiene todo visible.
-      const xEq = Math.max(0.3, equilibriumX());
-      const normalized = 0.5 + 0.5 * Math.tanh((s.x - xEq) / (xEq + 0.75));
-      const targetS = 0.22 + 0.56 * normalized;
-      displayS += (targetS - displayS) * 0.13;
+      const wallBase = add(bottom, mul(u, -70));
+      const wallTop = add(wallBase, mul(n, 130));
 
-      const trackPoint = add(top, mul(u, displayS * planeLen));
-      const cartCenter = add(trackPoint, mul(n, 78));
+      drawLine(wallBase, wallTop, 9, "#1e293b");
+      drawLine(wallBase, wallTop, 4, "#64748b");
 
-      const cartW = 178;
-      const cartH = 88;
-      const wheelR = 18;
+      const xeq = equilibriumX();
 
-      // Sombra.
+      const progressRaw = 0.5 + (s.x - xeq) / 2.6;
+      const targetProgress = clamp(progressRaw, 0.18, 0.82);
+
+      const cameraSpeed = mB >= 6 ? 0.35 : mB >= 2 ? 0.22 : 0.14;
+      visualProgress += (targetProgress - visualProgress) * cameraSpeed;
+
+      const trackPoint = add(top, mul(u, visualProgress * planeLen));
+      const cartCenter = add(trackPoint, mul(n, 76));
+
+      const S = Math.min(W / 1200, H / 700);
+      const cartW = 168 * S;
+      const cartH = 84 * S;
+      const wheelR = 17 * S;
+
+      const springStart = add(add(cartCenter, mul(u, cartW / 2 + 14 * S)), mul(n, -22 * S));
+      const springEnd = add(add(bottom, mul(u, -96 * S)), mul(n, 40 * S));
+
+      drawSpring(springStart, springEnd);
+
       ctx.save();
-      ctx.translate(cartCenter.x + 11, cartCenter.y + 13);
+      ctx.translate(cartCenter.x + 9 * S, cartCenter.y + 12 * S);
       ctx.rotate(planeAngle);
-      ctx.fillStyle = 'rgba(15, 23, 42, .14)';
-      roundRect(-cartW/2, -cartH/2, cartW, cartH, 11);
+      ctx.fillStyle = "rgba(0,0,0,0.35)";
+      roundRect(-cartW / 2, -cartH / 2, cartW, cartH, 11 * S);
       ctx.fill();
       ctx.restore();
 
-      // Carrito.
       ctx.save();
       ctx.translate(cartCenter.x, cartCenter.y);
       ctx.rotate(planeAngle);
 
-      const cartGrad = ctx.createLinearGradient(0, -cartH/2, 0, cartH/2);
-      cartGrad.addColorStop(0, '#64748b');
-      cartGrad.addColorStop(1, '#334155');
-      ctx.fillStyle = cartGrad;
-      ctx.strokeStyle = '#111827';
-      ctx.lineWidth = 4;
-      roundRect(-cartW/2, -cartH/2, cartW, cartH, 11);
+      const grad = ctx.createLinearGradient(0, -cartH / 2, 0, cartH / 2);
+      grad.addColorStop(0, "#64748b");
+      grad.addColorStop(1, "#1e293b");
+
+      ctx.fillStyle = grad;
+      ctx.strokeStyle = "#94a3b8";
+      ctx.lineWidth = 2.5 * S;
+      roundRect(-cartW / 2, -cartH / 2, cartW, cartH, 11 * S);
       ctx.fill();
       ctx.stroke();
 
-      // Tapa superior del carrito.
-      ctx.fillStyle = '#94a3b8';
-      roundRect(-cartW/2 + 20, -cartH/2 - 12, cartW * .56, 15, 6);
+      ctx.fillStyle = "#94a3b8";
+      roundRect(-cartW / 2 + 18 * S, -cartH / 2 - 12 * S, cartW * 0.55, 14 * S, 6 * S);
       ctx.fill();
 
-      // Ruedas.
-      for (const wx of [-58, 58]) {
-        ctx.fillStyle = '#f8fafc';
-        ctx.strokeStyle = '#111827';
-        ctx.lineWidth = 4;
+      for (const wx of [-54 * S, 54 * S]) {
+        ctx.fillStyle = "#e5e7eb";
+        ctx.strokeStyle = "#0f172a";
+        ctx.lineWidth = 3 * S;
+
         ctx.beginPath();
-        ctx.arc(wx, cartH/2 + wheelR - 1, wheelR, 0, Math.PI * 2);
+        ctx.arc(wx, cartH / 2 + wheelR - 1, wheelR, 0, Math.PI * 2);
         ctx.fill();
         ctx.stroke();
 
-        ctx.fillStyle = '#cbd5e1';
+        ctx.fillStyle = "#334155";
         ctx.beginPath();
-        ctx.arc(wx, cartH/2 + wheelR - 1, 5, 0, Math.PI * 2);
+        ctx.arc(wx, cartH / 2 + wheelR - 1, 5 * S, 0, Math.PI * 2);
         ctx.fill();
       }
 
-      // Soporte/palo del péndulo.
-      const postBottom = { x: 24, y: -cartH/2 + 7 };
-      const postTop = { x: 68, y: -cartH/2 - 124 };
-      ctx.strokeStyle = '#111827';
-      ctx.lineWidth = 10;
-      ctx.lineCap = 'round';
+      const postBase = { x: 18 * S, y: -cartH / 2 + 8 * S };
+      const postTip = { x: 18 * S, y: -cartH / 2 - 126 * S };
+
+      ctx.strokeStyle = "#020617";
+      ctx.lineWidth = 11 * S;
+      ctx.lineCap = "round";
       ctx.beginPath();
-      ctx.moveTo(postBottom.x, postBottom.y);
-      ctx.lineTo(postTop.x, postTop.y);
+      ctx.moveTo(postBase.x, postBase.y);
+      ctx.lineTo(postTip.x, postTip.y);
+      ctx.stroke();
+
+      ctx.strokeStyle = "#94a3b8";
+      ctx.lineWidth = 4 * S;
+      ctx.beginPath();
+      ctx.moveTo(postBase.x, postBase.y);
+      ctx.lineTo(postTip.x, postTip.y);
       ctx.stroke();
 
       ctx.restore();
 
-      // Pivote global.
-      const localPx = 68;
-      const localPy = -cartH/2 - 124;
+      const pivotLocal = { x: 18 * S, y: -cartH / 2 - 126 * S };
+
       const pivot = {
-        x: cartCenter.x + Math.cos(planeAngle) * localPx - Math.sin(planeAngle) * localPy,
-        y: cartCenter.y + Math.sin(planeAngle) * localPx + Math.cos(planeAngle) * localPy
+        x: cartCenter.x + Math.cos(planeAngle) * pivotLocal.x - Math.sin(planeAngle) * pivotLocal.y,
+        y: cartCenter.y + Math.sin(planeAngle) * pivotLocal.x + Math.cos(planeAngle) * pivotLocal.y
       };
 
-      // Resorte a la pared baja.
-      const springStart = add(add(cartCenter, mul(u, cartW/2 + 16)), mul(n, -22));
-      const springEnd = add(add(bottom, mul(u, -100)), mul(n, 44));
-      drawSpring(springStart, springEnd);
+      const poleDown = mul(n, -1);
+      const poleRef = add(pivot, mul(poleDown, 142 * S));
 
-      // Péndulo: φ = θ + α. Esto corrige el dibujo respecto al plano.
-      const phi = s.theta + alpha;
-      const pendLen = 132 * l;
-      const bob = {
-        x: pivot.x + pendLen * Math.sin(phi),
-        y: pivot.y + pendLen * Math.cos(phi)
-      };
+      ctx.setLineDash([7 * S, 6 * S]);
+      drawLine(pivot, poleRef, 2 * S, "rgba(148,163,184,0.46)");
+      ctx.setLineDash([]);
 
-      // Arco guía del péndulo, sutil.
-      ctx.strokeStyle = 'rgba(37, 99, 235, .18)';
-      ctx.lineWidth = 2;
+      const phiReal = s.theta + alphaVisual;
+      const phiDraw = clamp(phiReal, degToRad(8), degToRad(145));
+
+      const pendLen = 130 * l * S;
+
+      const pendDir = add(
+        mul(poleDown, Math.cos(phiDraw)),
+        mul(u, Math.sin(phiDraw))
+      );
+
+      const bob = add(pivot, mul(pendDir, pendLen));
+
+      const startAngle = Math.atan2(poleDown.y, poleDown.x);
+      const endAngle = Math.atan2(pendDir.y, pendDir.x);
+
+      drawArc(pivot, 58 * S, startAngle, endAngle, "φ");
+
+      drawLine(add(pivot, { x: 3 * S, y: 3 * S }), add(bob, { x: 3 * S, y: 3 * S }), 8 * S, "rgba(0,0,0,0.35)");
+      drawLine(pivot, bob, 5 * S, "#020617");
+      drawLine(pivot, bob, 2.5 * S, "#cbd5e1");
+
+      ctx.fillStyle = "#94a3b8";
+      ctx.strokeStyle = "#020617";
+      ctx.lineWidth = 3 * S;
       ctx.beginPath();
-      ctx.arc(pivot.x, pivot.y, pendLen, Math.PI/2 - .7, Math.PI/2 + .7);
-      ctx.stroke();
-
-      drawLine(pivot, bob, 6, '#111827');
-
-      ctx.fillStyle = '#94a3b8';
-      ctx.strokeStyle = '#111827';
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.arc(pivot.x, pivot.y, 16, 0, Math.PI * 2);
+      ctx.arc(pivot.x, pivot.y, 14 * S, 0, Math.PI * 2);
       ctx.fill();
       ctx.stroke();
 
-      ctx.fillStyle = '#f59e0b';
-      ctx.strokeStyle = '#111827';
-      ctx.lineWidth = 3.5;
+      const bobR = (24 + 2.8 * Math.sqrt(mB)) * S;
+      const bobColor = mB < 1 ? "#22c55e" : mB <= 2.5 ? "#f59e0b" : "#ef4444";
+
+      ctx.shadowColor = bobColor;
+      ctx.shadowBlur = mB >= 6 ? 28 : 18;
+
+      const bg = ctx.createRadialGradient(bob.x - bobR * 0.35, bob.y - bobR * 0.35, 2, bob.x, bob.y, bobR);
+      bg.addColorStop(0, "#ffffff");
+      bg.addColorStop(1, bobColor);
+
+      ctx.fillStyle = bg;
+      ctx.strokeStyle = "#020617";
+      ctx.lineWidth = 3 * S;
       ctx.beginPath();
-      ctx.arc(bob.x, bob.y, 25 + 2.4 * Math.sqrt(mB), 0, Math.PI * 2);
+      ctx.arc(bob.x, bob.y, bobR, 0, Math.PI * 2);
       ctx.fill();
       ctx.stroke();
 
-      // Etiquetas dentro del canvas.
-      ctx.fillStyle = '#0f172a';
-      ctx.font = '800 26px Arial';
-      ctx.fillText(caseTitle, 52, 76);
+      ctx.shadowBlur = 0;
 
-      ctx.font = '600 16px Arial';
-      ctx.fillStyle = '#475569';
-      ctx.fillText(`mC = ${mC} kg  |  mB = ${mB.toFixed(1)} kg  |  α = ${Number(alphaSlider.value)}°  |  θ = ${s.theta.toFixed(2)} rad  |  φ = θ + α = ${phi.toFixed(2)} rad`, 52, 104);
+      const couplingTerm = mB * l * s.omega * s.omega * Math.sin(s.theta);
+      const pullStrength = clamp(Math.abs(couplingTerm) / 13, 0, 1);
+
+      if (mB >= 2 && pullStrength > 0.10) {
+        // Flecha pequeña, cerca de las ruedas y alineada con el plano.
+        // Representa el término de acoplamiento mB*l*thetaDot²*sin(theta).
+        const sign = couplingTerm >= 0 ? 1 : -1;
+        const color = mB >= 6 ? "#ef4444" : "#f59e0b";
+
+        const arrowBase = add(cartCenter, mul(n, -62 * S));
+        const arrowStart = add(arrowBase, mul(u, -sign * (18 + 6 * pullStrength) * S));
+        const arrowEnd = add(arrowBase, mul(u, sign * (22 + 24 * pullStrength) * S));
+
+        drawArrow(
+          arrowStart,
+          arrowEnd,
+          color,
+          mB >= 6 ? "jalón" : ""
+        );
+
+        // Marcas cortas de tensión para que el caso 3 se note sin tapar el carrito.
+        if (mB >= 6) {
+          ctx.save();
+          ctx.globalAlpha = 0.38 + 0.18 * pullStrength;
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 1.5 * S;
+          ctx.lineCap = "round";
+
+          for (let i = -1; i <= 1; i++) {
+            const markBase = add(arrowBase, add(mul(u, i * 16 * S), mul(n, -8 * S)));
+            const markEnd = add(markBase, mul(u, sign * (12 + 12 * pullStrength) * S));
+            ctx.beginPath();
+            ctx.moveTo(markBase.x, markBase.y);
+            ctx.lineTo(markEnd.x, markEnd.y);
+            ctx.stroke();
+          }
+
+          ctx.restore();
+        }
+      }
+
+      ctx.fillStyle = "rgba(15,23,42,0.88)";
+      ctx.strokeStyle = "rgba(148,163,184,0.28)";
+      ctx.lineWidth = 1;
+      roundRect(22, 22, Math.min(560, W - 44), 112, 14);
+      ctx.fill();
+      ctx.stroke();
 
       const ratio = mB / mC;
-      const barX = 52, barY = 132, barW = 250, barH = 12;
-      ctx.fillStyle = '#e2e8f0';
-      roundRect(barX, barY, barW, barH, 6);
-      ctx.fill();
-      ctx.fillStyle = ratio < .25 ? '#16a34a' : ratio <= 1.2 ? '#f59e0b' : '#dc2626';
-      roundRect(barX, barY, Math.min(barW, barW * ratio / 3), barH, 6);
-      ctx.fill();
-      ctx.fillStyle = '#475569';
-      ctx.font = '700 13px Arial';
-      ctx.fillText('nivel de acoplamiento mB/mC', barX, barY + 32);
 
-      ctx.fillStyle = '#334155';
-      ctx.font = '700 14px Arial';
-      ctx.fillText('pivote', pivot.x + 22, pivot.y - 12);
-      ctx.fillText('resorte k', springEnd.x - 138, springEnd.y + 26);
+      ctx.fillStyle = "#e5e7eb";
+      ctx.font = "800 18px system-ui";
+      ctx.fillText(caseTitle, 42, 58);
+
+      ctx.fillStyle = "#94a3b8";
+      ctx.font = "600 12px ui-monospace, monospace";
+      ctx.fillText(
+        `mC=${mC}kg  mB=${mB.toFixed(1)}kg  α=-${radToDeg(alphaVisual).toFixed(0)}°  x=${s.x.toFixed(2)}m  xeq=${xeq.toFixed(2)}m  v=${s.vx.toFixed(2)}m/s`,
+        42,
+        82
+      );
+
+      ctx.fillStyle = "#1e293b";
+      roundRect(42, 101, 260, 9, 99);
+      ctx.fill();
+
+      ctx.fillStyle = ratio < 0.25 ? "#22c55e" : ratio <= 1.2 ? "#f59e0b" : "#ef4444";
+      roundRect(42, 101, Math.min(260, (ratio / 3) * 260), 9, 99);
+      ctx.fill();
+
+      ctx.fillStyle = "#94a3b8";
+      ctx.font = "700 11px ui-monospace, monospace";
+      ctx.fillText("acoplamiento mB/mC", 42, 124);
     }
 
     function animate(ts) {
       if (lastTs === null) lastTs = ts;
-      const frameDt = Math.min(0.035, (ts - lastTs) / 1000);
+
+      const frameDt = Math.min(0.032, (ts - lastTs) / 1000);
       lastTs = ts;
 
       accumulator += frameDt;
+
       while (accumulator >= simDt) {
         rk4Step(simDt);
         accumulator -= simDt;
       }
 
-      const renderAlpha = accumulator / simDt;
-      const renderState = getRenderState(renderAlpha);
+      const r = accumulator / simDt;
+      const renderState = getRenderState(r);
 
-      updateParamsFromUI();
+      updateParams();
       updateReadout(renderState);
       drawScene(renderState);
+
       requestAnimationFrame(animate);
     }
 
-    updateParamsFromUI();
-    updateCaseText();
+    updateParams();
+    updateCaseUI();
+    resetSimulation();
     requestAnimationFrame(animate);
   </script>
 </body>
