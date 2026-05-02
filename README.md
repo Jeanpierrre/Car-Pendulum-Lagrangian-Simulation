@@ -8,6 +8,6 @@ El objetivo es modelar el sistema utilizando el formalismo de Euler-Lagrange, ob
 
 ---
 
-## 🖼️ Representación del sistema
+## Representación del sistema
 
 ![Sistema Carro-Péndulo](ImgProblem.png)
