@@ -867,38 +867,57 @@
       ctx.stroke();
     }
 
-    function drawArrow(p1, p2, color, label) {
-      // Flecha compacta y limpia: solo visualiza el acoplamiento,
-      // no altera la dinámica del sistema.
+    function drawTensionIndicator(base, u, n, sign, color, strength, label, S, mode) {
+      // Indicador visual del acoplamiento.
+      // Importante: NO modifica las ecuaciones ni la integración.
+      // Se dibuja como pequeñas líneas de tensión, sin puntas gigantes.
+
       ctx.save();
 
-      const a = Math.atan2(p2.y - p1.y, p2.x - p1.x);
-      const len = Math.hypot(p2.x - p1.x, p2.y - p1.y);
-      const head = Math.min(7, Math.max(5, len * 0.18));
+      const pulse = 0.78 + 0.22 * Math.sin(performance.now() * 0.018);
+      const alpha = mode === "heavy" ? 0.42 + 0.28 * strength * pulse : 0.30 + 0.18 * strength;
+      const count = mode === "heavy" ? 4 : 2;
+      const spacing = 9 * S;
+      const lenBase = mode === "heavy" ? 34 : 22;
+      const len = (lenBase + 26 * strength) * S;
 
-      ctx.globalAlpha = 0.78;
+      ctx.globalAlpha = alpha;
       ctx.strokeStyle = color;
-      ctx.lineWidth = 1.9;
+      ctx.lineWidth = (mode === "heavy" ? 2.0 : 1.5) * S;
       ctx.lineCap = "round";
+      ctx.shadowColor = color;
+      ctx.shadowBlur = mode === "heavy" ? 7 : 3;
 
-      ctx.beginPath();
-      ctx.moveTo(p1.x, p1.y);
-      ctx.lineTo(p2.x, p2.y);
-      ctx.stroke();
+      for (let i = 0; i < count; i++) {
+        const centered = i - (count - 1) / 2;
+        const p1 = add(add(base, mul(n, centered * spacing)), mul(u, -sign * 0.45 * len));
+        const p2 = add(add(base, mul(n, centered * spacing)), mul(u, sign * 0.55 * len));
 
-      ctx.fillStyle = color;
-      ctx.beginPath();
-      ctx.moveTo(p2.x, p2.y);
-      ctx.lineTo(p2.x - head * Math.cos(a - 0.45), p2.y - head * Math.sin(a - 0.45));
-      ctx.lineTo(p2.x - head * Math.cos(a + 0.45), p2.y - head * Math.sin(a + 0.45));
-      ctx.closePath();
-      ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
+        ctx.stroke();
+
+        // Pequeño remate tipo chevrón, controlado y sin triángulos grandes.
+        const tip1 = add(p2, add(mul(u, -sign * 6 * S), mul(n, 3 * S)));
+        const tip2 = add(p2, add(mul(u, -sign * 6 * S), mul(n, -3 * S)));
+
+        ctx.beginPath();
+        ctx.moveTo(p2.x, p2.y);
+        ctx.lineTo(tip1.x, tip1.y);
+        ctx.moveTo(p2.x, p2.y);
+        ctx.lineTo(tip2.x, tip2.y);
+        ctx.stroke();
+      }
+
+      ctx.shadowBlur = 0;
 
       if (label) {
-        ctx.globalAlpha = 0.66;
-        ctx.font = "700 9px system-ui";
+        const textPos = add(add(base, mul(u, sign * (0.65 * len + 8 * S))), mul(n, -18 * S));
+        ctx.globalAlpha = mode === "heavy" ? 0.78 : 0.55;
         ctx.fillStyle = color;
-        ctx.fillText(label, p2.x + 5, p2.y - 4);
+        ctx.font = "700 10px system-ui";
+        ctx.fillText(label, textPos.x, textPos.y);
       }
 
       ctx.restore();
@@ -1142,41 +1161,41 @@
       const couplingTerm = mB * l * s.omega * s.omega * Math.sin(s.theta);
       const pullStrength = clamp(Math.abs(couplingTerm) / 13, 0, 1);
 
-      if (mB >= 2 && pullStrength > 0.10) {
-        // Flecha pequeña, cerca de las ruedas y alineada con el plano.
-        // Representa el término de acoplamiento mB*l*thetaDot²*sin(theta).
+      // Visualización limpia del acoplamiento:
+      // - Caso 1: no se dibuja indicador, porque el péndulo casi no afecta al carro.
+      // - Caso 2: líneas pequeñas ámbar cerca del carrito.
+      // - Caso 3: líneas rojas más visibles + pulso suave en el carrito.
+      // No hay flechas grandes ni figuras que tapen el panel.
+      if (mB >= 2 && pullStrength > 0.08) {
         const sign = couplingTerm >= 0 ? 1 : -1;
-        const color = mB >= 6 ? "#ef4444" : "#f59e0b";
+        const isHeavy = mB >= 6;
+        const color = isHeavy ? "#ef4444" : "#f59e0b";
 
-        const arrowBase = add(cartCenter, mul(n, -62 * S));
-        const arrowStart = add(arrowBase, mul(u, -sign * (18 + 6 * pullStrength) * S));
-        const arrowEnd = add(arrowBase, mul(u, sign * (22 + 24 * pullStrength) * S));
+        // Ubicación: cerca del cuerpo del carrito, no en el panel superior.
+        const tensionBase = add(cartCenter, add(mul(n, 60 * S), mul(u, -6 * S)));
 
-        drawArrow(
-          arrowStart,
-          arrowEnd,
-          color,
-          mB >= 6 ? "jalón" : ""
-        );
-
-        // Marcas cortas de tensión para que el caso 3 se note sin tapar el carrito.
-        if (mB >= 6) {
+        if (isHeavy) {
+          // Pulso suave alrededor del carrito para indicar jalón fuerte.
           ctx.save();
-          ctx.globalAlpha = 0.38 + 0.18 * pullStrength;
+          ctx.globalAlpha = 0.10 + 0.12 * pullStrength;
           ctx.strokeStyle = color;
-          ctx.lineWidth = 1.5 * S;
-          ctx.lineCap = "round";
-
-          for (let i = -1; i <= 1; i++) {
-            const markBase = add(arrowBase, add(mul(u, i * 16 * S), mul(n, -8 * S)));
-            const markEnd = add(markBase, mul(u, sign * (12 + 12 * pullStrength) * S));
-            ctx.beginPath();
-            ctx.moveTo(markBase.x, markBase.y);
-            ctx.lineTo(markEnd.x, markEnd.y);
-            ctx.stroke();
-          }
-
+          ctx.lineWidth = 2 * S;
+          ctx.beginPath();
+          ctx.ellipse(
+            cartCenter.x,
+            cartCenter.y,
+            cartW * (0.68 + 0.08 * pullStrength),
+            cartH * (0.66 + 0.08 * pullStrength),
+            planeAngle,
+            0,
+            Math.PI * 2
+          );
+          ctx.stroke();
           ctx.restore();
+
+          drawTensionIndicator(tensionBase, u, n, sign, color, pullStrength, "jalón", S, "heavy");
+        } else {
+          drawTensionIndicator(tensionBase, u, n, sign, color, pullStrength, "", S, "medium");
         }
       }
 
