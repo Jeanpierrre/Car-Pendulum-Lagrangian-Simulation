@@ -27,6 +27,12 @@
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
+  html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
   body {
     background: var(--bg);
     color: var(--text);
@@ -54,9 +60,12 @@
     flex: 1;
     position: relative;
     overflow: hidden;
+    min-width: 0;
   }
   #sim-canvas {
     display: block;
+    position: absolute;
+    top: 0; left: 0;
     width: 100%;
     height: 100%;
   }
@@ -1051,9 +1060,14 @@ function updateUI(s) {
 // RESIZE
 // ══════════════════════════════════════════
 function resize() {
-  canvas.width  = canvas.clientWidth  * devicePixelRatio;
-  canvas.height = canvas.clientHeight * devicePixelRatio;
-  ctx.scale(devicePixelRatio,devicePixelRatio);
+  const wrap = canvas.parentElement;
+  const W = wrap.clientWidth;
+  const H = wrap.clientHeight;
+  const dpr = devicePixelRatio || 1;
+  canvas.width  = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width  = W + 'px';
+  canvas.style.height = H + 'px';
   resizePlots();
 }
 
@@ -1092,13 +1106,15 @@ function loop(ts) {
   const alpha_t = clamp(accumulator/DT,0,1);
   const s = renderState(alpha_t);
 
-  // Resize canvas if needed
-  if(canvas.width !== canvas.clientWidth*devicePixelRatio ||
-     canvas.height !== canvas.clientHeight*devicePixelRatio){
+  // Resize canvas if container changed
+  const wrap = canvas.parentElement;
+  const dpr = devicePixelRatio || 1;
+  if(canvas.width !== wrap.clientWidth*dpr || canvas.height !== wrap.clientHeight*dpr){
     resize();
   }
+
   ctx.save();
-  ctx.scale(devicePixelRatio,devicePixelRatio);
+  ctx.scale(dpr, dpr);
   drawScene(s);
   ctx.restore();
 
