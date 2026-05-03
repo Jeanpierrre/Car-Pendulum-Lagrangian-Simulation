@@ -747,7 +747,7 @@ function resizePlots() {
 // MAIN DRAW SCENE
 // ══════════════════════════════════════════
 function drawScene(s) {
-  const W=canvas.width, H=canvas.height;
+  const W=canvas.clientWidth, H=canvas.clientHeight;
   // Background
   ctx.fillStyle='#02061a'; ctx.fillRect(0,0,W,H);
   // Grid
